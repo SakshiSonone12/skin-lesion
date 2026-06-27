@@ -4,6 +4,8 @@ from torchvision import transforms
 from PIL import Image
 import io
 import logging
+import os
+from huggingface_hub import hf_hub_download
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +66,14 @@ def load_model(model_path: str = "final_model.pth"):
     if _model is not None:
         return _model
 
+    # Download model from Hugging Face if not found locally
+    if not os.path.exists(model_path):
+        logger.info("Downloading model from Hugging Face...")
+        model_path = hf_hub_download(
+            repo_id="sakshi10s/final_model.pth",
+            filename="final_model.pth"
+        )
+
     logger.info("Loading ViT model...")
     try:
         model = timm.create_model(
@@ -71,6 +81,7 @@ def load_model(model_path: str = "final_model.pth"):
             pretrained=False,
             num_classes=7
         )
+
         checkpoint = torch.load(model_path, map_location="cpu")
 
         # Handle both raw state_dict and wrapped checkpoints
@@ -86,12 +97,15 @@ def load_model(model_path: str = "final_model.pth"):
 
         model.load_state_dict(state_dict, strict=False)
         model.eval()
+
         _model = model
         logger.info("Model loaded successfully.")
         return _model
+
     except FileNotFoundError:
         logger.error(f"Model file not found at {model_path}")
         raise
+
     except Exception as e:
         logger.error(f"Error loading model: {e}")
         raise

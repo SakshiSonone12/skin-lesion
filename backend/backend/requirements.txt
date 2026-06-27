@@ -17,3 +17,6 @@ timm>=0.9.0
 Pillow>=10.0.0
 
 python-dotenv==1.0.1
+
+huggingface_hub
+requests
